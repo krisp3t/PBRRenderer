@@ -7,7 +7,7 @@ namespace PBRRenderer
 class Window
 {
   public:
-    Window(HINSTANCE hInst, wchar_t *pArgs, int width, int height);
+    Window(HINSTANCE hInst, const wchar_t *pArgs, int width, int height);
     ~Window();
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
@@ -20,12 +20,16 @@ class Window
 
     const wchar_t *GetName() noexcept;
     HINSTANCE GetInstance() noexcept;
+    HWND GetHandle() noexcept;
+    bool IsValid() noexcept;
 
   private:
-    static LRESULT CALLBACK SetupMessageHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    static LRESULT WINAPI _HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    static LRESULT WINAPI _HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
   private:
-    const wchar_t *m_pClassName = L"PBRRendererWindow";
+    static constexpr const wchar_t *s_ClassName = L"PBRRendererWindow";
     HINSTANCE m_hInst = nullptr;
     std::wstring m_pArgs;
     HWND m_hWnd = nullptr;
