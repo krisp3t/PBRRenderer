@@ -1,10 +1,6 @@
 #include <PBRRenderer/KrisWin.h>
 
-LRESULT CALLBACK WndProc(
-    HWND hWnd,
-    UINT msg,
-    WPARAM wParam,
-    LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -16,13 +12,9 @@ LRESULT CALLBACK WndProc(
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-int CALLBACK WinMain(
-    HINSTANCE hInstance,
-    HINSTANCE hPrevInstance,
-    LPSTR lpCmdLine,
-    int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    const auto pClassName = "PBRRenderer";
+    const auto pClassName = L"PBRRenderer";
     // Register window class
     WNDCLASSEX wc = {0};
     wc.cbSize = sizeof(wc);
@@ -40,17 +32,8 @@ int CALLBACK WinMain(
     RegisterClassEx(&wc);
 
     // Create window instance
-    HWND hWnd = CreateWindowEx(
-        0,
-        pClassName,
-        pClassName,
-        WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
-        200, 200, 800, 600,
-        nullptr,
-        nullptr,
-        hInstance,
-        nullptr
-        );
+    HWND hWnd = CreateWindowEx(0, pClassName, pClassName, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 200, 200, 800, 600,
+                               nullptr, nullptr, hInstance, nullptr);
     ShowWindow(hWnd, SW_SHOW);
 
     // Message pump
