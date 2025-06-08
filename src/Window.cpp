@@ -50,7 +50,7 @@ Window::Window(HINSTANCE hInst, const wchar_t *pArgs, int width, int height) : m
 
 Window::~Window()
 {
-    if (m_hInst && s_ClassName)
+    if (m_hInst)
     {
         UnregisterClass(s_ClassName, m_hInst);
     }
@@ -61,37 +61,31 @@ const wchar_t *Window::GetName() noexcept
     return s_ClassName;
 }
 
-HINSTANCE Window::GetInstance() noexcept
+HINSTANCE Window::GetInstance() const noexcept
 {
     return m_hInst;
 }
 
 LRESULT WINAPI Window::_HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    // use create parameter passed in from CreateWindow() to store window class pointer at WinAPI side
     if (msg == WM_NCCREATE)
     {
-        // extract ptr to window class from creation data
+        // Get CREATESTRUCT passed to CreateWindowEx, containing window ptr
         const CREATESTRUCTW *const pCreate = reinterpret_cast<CREATESTRUCTW *>(lParam);
-        Window *const pWnd = reinterpret_cast<Window *>(pCreate->lpCreateParams);
-        // sanity check
+        auto *const pWnd = reinterpret_cast<Window *>(pCreate->lpCreateParams);
         assert(pWnd != nullptr);
-        // set WinAPI-managed user data to store ptr to window class
+
         SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
-        // set message proc to normal (non-setup) handler now that setup is finished
         SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::_HandleMsgThunk));
-        // forward message to window class handler
+        // Forward message to window class handler
         return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
     }
-    // if we get a message before the WM_NCCREATE message, handle with default handler
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 LRESULT WINAPI Window::_HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    // retrieve ptr to window class
     Window *const pWnd = reinterpret_cast<Window *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    // forward message to window class handler
     return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 

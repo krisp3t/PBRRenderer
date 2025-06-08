@@ -18,8 +18,8 @@ class Window
         PostQuitMessage(0);
     };
 
-    const wchar_t *GetName() noexcept;
-    HINSTANCE GetInstance() noexcept;
+    static const wchar_t *GetName() noexcept;
+    HINSTANCE GetInstance() const noexcept;
     HWND GetHandle() noexcept;
     bool IsValid() noexcept;
 
