@@ -1,7 +1,5 @@
 #include "Graphics.h"
 
-// #pragma comment(lib, "d3d11.lib")
-
 namespace PBRRenderer
 {
 
@@ -36,10 +34,41 @@ Graphics::Graphics(HWND hWnd)
         &m_pDevice,
         nullptr,
         &m_pContext);
+
+    ID3D11Texture2D *pBackBuffer = nullptr;
+    m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pBackBuffer);
+    m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pTarget);
+    pBackBuffer->Release();
 }
 
 Graphics::~Graphics()
 {
+    m_pTarget->Release();
+    m_pTarget = nullptr;
+    m_pContext->Release();
+    m_pContext = nullptr;
+    m_pDevice->Release();
+    m_pDevice = nullptr;
+    m_pSwapChain->Release();
+    m_pSwapChain = nullptr;
+}
+
+void Graphics::EndFrame()
+{
+    m_pSwapChain->Present(1, 0);
+}
+
+void Graphics::ClearBuffer(float r, float g, float b, float a)
+{
+    const float clearColor[4] = {r, g, b, a};
+    m_pContext->OMSetRenderTargets(1, &m_pTarget, nullptr);
+    m_pContext->ClearRenderTargetView(m_pTarget, clearColor);
+}
+
+void Graphics::Present()
+{
+    m_pSwapChain->Present(1, 0);
+
 }
 
 } // namespace PBRRenderer

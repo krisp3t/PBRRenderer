@@ -5,7 +5,7 @@ namespace PBRRenderer
 {
 
 App::App(const std::string &commandLine)
-    : m_CommandLine(commandLine), m_Window(GetModuleHandle(nullptr), L"PBRRenderer", 800, 600)
+    : m_CommandLine(commandLine), m_Wnd(GetModuleHandle(nullptr), L"PBRRenderer", 800, 600)
 {
 }
 
@@ -29,7 +29,6 @@ int App::Run()
             DispatchMessage(&msg);
         }
 
-        // Perform frame updates and input handling
         HandleInput(0.0f);
         DoFrame(0.0f);
     }
@@ -37,6 +36,8 @@ int App::Run()
 
 void App::DoFrame(float dt)
 {
+    m_Wnd.Gfx().ClearBuffer(0.5f, 0.0f, 1.0f, 1.0f);
+    m_Wnd.Gfx().EndFrame();
 }
 
 void App::HandleInput(float dt)

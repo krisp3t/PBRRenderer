@@ -122,4 +122,9 @@ bool Window::IsValid() noexcept
     return m_hWnd != nullptr;
 }
 
+Graphics &Window::Gfx()
+{
+    return *m_pGraphics;
+}
+
 } // namespace PBRRenderer

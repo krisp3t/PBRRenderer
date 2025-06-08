@@ -38,8 +38,6 @@
 #define NOPROXYSTUB
 #define NOIMAGE
 #define NOTAPE
-#define UNICODE
-#define _UNICODE
 
 #define STRICT
 

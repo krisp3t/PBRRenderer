@@ -1,5 +1,4 @@
 #pragma once
-#include <PBRRenderer/KrisWin.h>
 #include <Window.h>
 #include <string>
 
@@ -23,7 +22,7 @@ class App
 
   private:
     std::string m_CommandLine;
-    Window m_Window;
+    Window m_Wnd;
 };
 
 } // namespace PBRRenderer

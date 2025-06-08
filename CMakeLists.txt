@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(PBRRenderer)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -18,7 +18,7 @@ target_include_directories(${PROJECT_NAME}
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-
+target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE=1 _UNICODE=1)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )

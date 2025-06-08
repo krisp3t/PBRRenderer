@@ -1,6 +1,5 @@
 #include <App.h>
 #include <PBRRenderer/KrisWin.h>
-#include <Window.h>
 
 int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, LPWSTR pArgs, INT)
 {
