@@ -1,17 +1,47 @@
 #include "Graphics.h"
+
+#include <corecrt_wstdio.h>
 #include <dxerr/dxerr.h>
 
-#define GFX_THROW_FAILED(hrcall) \
+#define GFX_RETURN_FAILED(hrcall) \
 do { \
-hr = (hrcall); \
+HRESULT hr = (hrcall); \
 if (FAILED(hr)) { \
-DXTRACE_ERR_MSGBOX(L"Graphics Error", hr); \
+CheckAndLogError(hr, __FILEW__, __LINE__); \
 } \
 } while(0)
 
 
+
 namespace PBRRenderer
 {
+
+bool Graphics::CheckAndLogError(HRESULT hr, const wchar_t* file, DWORD line)
+{
+    GraphicsErrorInfo errorInfo;
+    errorInfo.errorCode = hr;
+    errorInfo.errorString = DXGetErrorStringW(hr);
+    errorInfo.file = file;
+    errorInfo.line = line;
+    DXGetErrorDescriptionW(hr, errorInfo.errorDesc, 256);
+
+    wchar_t errorMsg[512];
+    swprintf_s(errorMsg, 512,
+        L"Graphics Error occurred!\n"
+        L"File: %s\n"
+        L"Line: %lu\n"
+        L"Error Code: 0x%08X\n"
+        L"Error: %s\n"
+        L"Description: %s",
+        errorInfo.file,
+        errorInfo.line,
+        errorInfo.errorCode,
+        errorInfo.errorString,
+        errorInfo.errorDesc);
+
+    MessageBoxW(nullptr, errorMsg, L"Graphics Error", MB_OK | MB_ICONERROR);
+    return false;
+}
 
 Graphics::Graphics(HWND hWnd)
 {
@@ -34,10 +64,10 @@ Graphics::Graphics(HWND hWnd)
 
     HRESULT hr;
 
-    GFX_THROW_FAILED(D3D11CreateDeviceAndSwapChain(nullptr,
+    GFX_RETURN_FAILED(D3D11CreateDeviceAndSwapChain(nullptr,
         D3D_DRIVER_TYPE_HARDWARE,
         nullptr,
-        0,
+        D3D11_CREATE_DEVICE_DEBUG,
         nullptr,
         0,
         D3D11_SDK_VERSION,
@@ -70,7 +100,7 @@ void Graphics::EndFrame()
     HRESULT hr;
     if (FAILED(m_pSwapChain->Present(1, 0)))
     {
-        GFX_THROW_FAILED(hr);
+        GFX_RETURN_FAILED(hr);
     }
 }
 
@@ -91,7 +121,7 @@ void Graphics::ClearBuffer(float r, float g, float b, float a)
     texDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
 
     // This should trigger an error and DXTrace message
-    GFX_THROW_FAILED(m_pDevice->CreateTexture2D(&texDesc, nullptr, &pTexture));
+    GFX_RETURN_FAILED(m_pDevice->CreateTexture2D(&texDesc, nullptr, &pTexture));
 
     // Normal rendering code
     const float clearColor[4] = {r, g, b, a};
