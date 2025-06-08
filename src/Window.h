@@ -1,5 +1,7 @@
 #pragma once
 #include <PBRRenderer/KrisWin.h>
+#include <Graphics.h>
+#include <memory>
 #include <string>
 
 namespace PBRRenderer
@@ -22,6 +24,7 @@ class Window
     HINSTANCE GetInstance() const noexcept;
     HWND GetHandle() noexcept;
     bool IsValid() noexcept;
+    Graphics &GetGraphics();
 
   private:
     static LRESULT WINAPI _HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -33,5 +36,6 @@ class Window
     HINSTANCE m_hInst = nullptr;
     std::wstring m_pArgs;
     HWND m_hWnd = nullptr;
+    std::unique_ptr<Graphics> m_pGraphics;
 };
 } // namespace PBRRenderer

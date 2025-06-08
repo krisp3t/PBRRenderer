@@ -1,12 +1,12 @@
 #include "Window.h"
-
 #include <cassert>
 #include <iostream>
 
 namespace PBRRenderer
 {
 
-Window::Window(HINSTANCE hInst, const wchar_t *pArgs, int width, int height) : m_hInst(hInst), m_pArgs(pArgs)
+Window::Window(HINSTANCE hInst, const wchar_t *pArgs, int width, int height)
+    : m_hInst(hInst), m_pArgs(pArgs)
 {
     // Register window class
     WNDCLASSEX wc = {0};
@@ -35,9 +35,18 @@ Window::Window(HINSTANCE hInst, const wchar_t *pArgs, int width, int height) : m
     wr.top = 100;
     wr.bottom = height + wr.top;
     AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
-    m_hWnd =
-        CreateWindowEx(0, GetName(), L"PBRRenderer", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, CW_USEDEFAULT,
-                       CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr, GetInstance(), this);
+    m_hWnd = CreateWindowEx(0,
+        GetName(),
+        L"PBRRenderer",
+        WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        wr.right - wr.left,
+        wr.bottom - wr.top,
+        nullptr,
+        nullptr,
+        GetInstance(),
+        this);
 
     if (!m_hWnd)
     {
@@ -45,6 +54,7 @@ Window::Window(HINSTANCE hInst, const wchar_t *pArgs, int width, int height) : m
         return;
     }
     ShowWindow(m_hWnd, SW_SHOW);
+    m_pGraphics = std::make_unique<Graphics>(m_hWnd);
     UpdateWindow(m_hWnd);
 }
 

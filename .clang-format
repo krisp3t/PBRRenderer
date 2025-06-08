@@ -1,4 +1,14 @@
 ﻿---
 BasedOnStyle: Microsoft
 
+AlignAfterOpenBracket: DontAlign
+AllowAllArgumentsOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: All
+BreakBeforeTernaryOperators: True
+ColumnLimit: 100
+PenaltyBreakBeforeFirstCallParameter: 1
+IndentWidth: 4
+
 ...
