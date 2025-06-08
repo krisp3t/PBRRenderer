@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(${PROJECT_NAME} WIN32
+        include/dxerr/dxerr.cpp
         src/WinMain.cpp
         src/Window.cpp
         src/App.cpp
