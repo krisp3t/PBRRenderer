@@ -1,4 +1,5 @@
 #pragma once
+#include <wrl/client.h>
 #include <d3d11.h>
 
 namespace PBRRenderer
@@ -17,23 +18,23 @@ class Graphics
     };
 
     Graphics(HWND hWnd);
-    ~Graphics();
+    ~Graphics() = default;
     Graphics(const Graphics &) = delete;
     Graphics &operator=(const Graphics &) = delete;
     Graphics(Graphics &&) = delete;
 
     void EndFrame();
-    void ClearBuffer(float r, float g, float b, float a);
+    void ClearBuffer(float r, float g, float b, float a = 1.0);
     void Present();
 
 private:
     bool CheckAndLogError(HRESULT hr, const wchar_t* file, DWORD line);
 
 private:
-    ID3D11Device *m_pDevice = nullptr;
-    ID3D11DeviceContext *m_pContext = nullptr;
-    IDXGISwapChain *m_pSwapChain = nullptr;
-    ID3D11RenderTargetView *m_pTarget = nullptr;
+    Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice = nullptr;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext = nullptr;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> m_pSwapChain = nullptr;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pTarget = nullptr;
 };
 
 } // namespace PBRRenderer

@@ -1,5 +1,4 @@
 #include "Graphics.h"
-
 #include <corecrt_wstdio.h>
 #include <dxerr/dxerr.h>
 
@@ -11,7 +10,7 @@ CheckAndLogError(hr, __FILEW__, __LINE__); \
 } \
 } while(0)
 
-
+namespace wrl = Microsoft::WRL;
 
 namespace PBRRenderer
 {
@@ -77,22 +76,9 @@ Graphics::Graphics(HWND hWnd)
         nullptr,
         &m_pContext));
 
-    ID3D11Texture2D *pBackBuffer = nullptr;
-    m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pBackBuffer);
-    m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pTarget);
-    pBackBuffer->Release();
-}
-
-Graphics::~Graphics()
-{
-    m_pTarget->Release();
-    m_pTarget = nullptr;
-    m_pContext->Release();
-    m_pContext = nullptr;
-    m_pDevice->Release();
-    m_pDevice = nullptr;
-    m_pSwapChain->Release();
-    m_pSwapChain = nullptr;
+    wrl::ComPtr<ID3D11Resource> pBackBuffer = nullptr;
+    GFX_RETURN_FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), (LPVOID *)&pBackBuffer));
+    GFX_RETURN_FAILED(m_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pTarget));
 }
 
 void Graphics::EndFrame()
@@ -106,32 +92,9 @@ void Graphics::EndFrame()
 
 void Graphics::ClearBuffer(float r, float g, float b, float a)
 {
-    HRESULT hr;
-    // Create an invalid texture to force an error
-    ID3D11Texture2D* pTexture = nullptr;
-    D3D11_TEXTURE2D_DESC texDesc = {};
-    texDesc.Width = 0;  // Invalid width to force error
-    texDesc.Height = 1;
-    texDesc.MipLevels = 1;
-    texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    texDesc.SampleDesc.Count = 1;
-    texDesc.SampleDesc.Quality = 0;
-    texDesc.Usage = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
-
-    // This should trigger an error and DXTrace message
-    GFX_RETURN_FAILED(m_pDevice->CreateTexture2D(&texDesc, nullptr, &pTexture));
-
-    // Normal rendering code
     const float clearColor[4] = {r, g, b, a};
-    m_pContext->OMSetRenderTargets(1, &m_pTarget, nullptr);
-    m_pContext->ClearRenderTargetView(m_pTarget, clearColor);
-
-    if (pTexture)
-    {
-        pTexture->Release();
-    }
+    m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), nullptr);
+    m_pContext->ClearRenderTargetView(m_pTarget.Get(), clearColor);
 }
 
 void Graphics::Present()
