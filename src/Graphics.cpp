@@ -141,8 +141,16 @@ void Graphics::DrawTestTriangle()
         pBlob->GetBufferSize(),
         nullptr,
         &pVertexShader));
+    wrl::ComPtr<ID3D11PixelShader> pPixelShader = nullptr;
+    D3DReadFileToBlob(L"../shaders/PixelShader.cso", &pBlob);
+    GFX_RETURN_FAILED(m_pDevice->CreatePixelShader(pBlob->GetBufferPointer(),
+        pBlob->GetBufferSize(),
+        nullptr,
+        &pPixelShader));
+
     m_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
     m_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
+    m_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
     m_pContext->Draw(3, 0);
 }
 

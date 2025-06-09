@@ -18,6 +18,7 @@ endif ()
 
 set(SHADER_FILES
         VertexShader.hlsl
+        PixelShader.hlsl
 )
 foreach (SHADER ${SHADER_FILES})
     get_filename_component(SHADER_NAME ${SHADER} NAME_WE)
