@@ -133,6 +133,15 @@ void Graphics::DrawTestTriangle()
     GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
     const UINT stride = sizeof(Vertex);
     const UINT offset = 0;
+
+    wrl::ComPtr<ID3D11VertexShader> pVertexShader = nullptr;
+    wrl::ComPtr<ID3DBlob> pBlob;
+    D3DReadFileToBlob(L"../shaders/VertexShader.cso", &pBlob);
+    GFX_RETURN_FAILED(m_pDevice->CreateVertexShader(pBlob->GetBufferPointer(),
+        pBlob->GetBufferSize(),
+        nullptr,
+        &pVertexShader));
+    m_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
     m_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
     m_pContext->Draw(3, 0);
 }

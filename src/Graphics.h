@@ -1,6 +1,7 @@
 #pragma once
-#include <wrl/client.h>
 #include <d3d11.h>
+#include <d3dcompiler.h>
+#include <wrl/client.h>
 
 namespace PBRRenderer
 {
@@ -11,9 +12,9 @@ class Graphics
     struct GraphicsErrorInfo
     {
         HRESULT errorCode;
-        const wchar_t* errorString;
+        const wchar_t *errorString;
         wchar_t errorDesc[256];
-        const wchar_t* file;
+        const wchar_t *file;
         DWORD line;
     };
 
@@ -28,10 +29,10 @@ class Graphics
     void Present();
     void DrawTestTriangle();
 
-private:
-    bool CheckAndLogError(HRESULT hr, const wchar_t* file, DWORD line);
+  private:
+    bool CheckAndLogError(HRESULT hr, const wchar_t *file, DWORD line);
 
-private:
+  private:
     Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice = nullptr;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext = nullptr;
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_pSwapChain = nullptr;
