@@ -1,6 +1,7 @@
 #include "Graphics.h"
 #include <corecrt_wstdio.h>
 #include <dxerr/dxerr.h>
+#include <iterator>
 
 #define GFX_RETURN_FAILED(hrcall)                                                                  \
     do                                                                                             \
@@ -96,7 +97,7 @@ void Graphics::EndFrame()
 void Graphics::ClearBuffer(float r, float g, float b, float a)
 {
     const float clearColor[4] = {r, g, b, a};
-    m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), nullptr);
+
     m_pContext->ClearRenderTargetView(m_pTarget.Get(), clearColor);
 }
 
@@ -133,14 +134,8 @@ void Graphics::DrawTestTriangle()
     GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
     const UINT stride = sizeof(Vertex);
     const UINT offset = 0;
-
-    wrl::ComPtr<ID3D11VertexShader> pVertexShader = nullptr;
     wrl::ComPtr<ID3DBlob> pBlob;
-    D3DReadFileToBlob(L"../shaders/VertexShader.cso", &pBlob);
-    GFX_RETURN_FAILED(m_pDevice->CreateVertexShader(pBlob->GetBufferPointer(),
-        pBlob->GetBufferSize(),
-        nullptr,
-        &pVertexShader));
+
     wrl::ComPtr<ID3D11PixelShader> pPixelShader = nullptr;
     D3DReadFileToBlob(L"../shaders/PixelShader.cso", &pBlob);
     GFX_RETURN_FAILED(m_pDevice->CreatePixelShader(pBlob->GetBufferPointer(),
@@ -148,9 +143,46 @@ void Graphics::DrawTestTriangle()
         nullptr,
         &pPixelShader));
 
+    wrl::ComPtr<ID3D11VertexShader> pVertexShader = nullptr;
+    D3DReadFileToBlob(L"../shaders/VertexShader.cso", &pBlob);
+    GFX_RETURN_FAILED(m_pDevice->CreateVertexShader(pBlob->GetBufferPointer(),
+        pBlob->GetBufferSize(),
+        nullptr,
+        &pVertexShader));
+
     m_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
     m_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
     m_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
+
+    wrl::ComPtr<ID3D11InputLayout> pInputLayout;
+    D3D11_INPUT_ELEMENT_DESC layout[] = {
+        "Position",
+        0,
+        DXGI_FORMAT_R32G32_FLOAT,
+        0,
+        0,
+        D3D11_INPUT_PER_VERTEX_DATA,
+        0,
+    };
+    GFX_RETURN_FAILED(m_pDevice->CreateInputLayout(layout,
+        (UINT)std::size(layout),
+        pBlob->GetBufferPointer(),
+        pBlob->GetBufferSize(),
+        &pInputLayout));
+
+    m_pContext->IASetInputLayout(pInputLayout.Get());
+    m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), nullptr);
+    m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    D3D11_VIEWPORT vp = {};
+    vp.Width = 800;
+    vp.Height = 600;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    m_pContext->RSSetViewports(1, &vp);
+
     m_pContext->Draw(3, 0);
 }
 
