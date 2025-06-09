@@ -37,6 +37,7 @@ int App::Run()
 void App::DoFrame(float dt)
 {
     m_Wnd.Gfx().ClearBuffer(0.5f, 0.5f, 1.0f);
+    m_Wnd.Gfx().DrawTestTriangle();
     m_Wnd.Gfx().EndFrame();
 }
 

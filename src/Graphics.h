@@ -26,10 +26,7 @@ class Graphics
     void EndFrame();
     void ClearBuffer(float r, float g, float b, float a = 1.0);
     void Present();
-    void DrawTestTriangle()
-    {
-        m_pContext->Draw(3, 0);
-    }
+    void DrawTestTriangle();
 
 private:
     bool CheckAndLogError(HRESULT hr, const wchar_t* file, DWORD line);
