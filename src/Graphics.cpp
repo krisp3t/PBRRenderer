@@ -111,13 +111,23 @@ void Graphics::DrawTestTriangle()
     namespace wrl = Microsoft::WRL;
     struct Vertex
     {
-        float x;
-        float y;
+        struct
+        {
+            float x;
+            float y;
+        } pos;
+        struct
+        {
+            uint8_t r;
+            uint8_t g;
+            uint8_t b;
+            uint8_t a;
+        } color;
     };
     const Vertex vertices[] = {
-        {0.0f, 0.5f},
-        {0.5f, -0.5f},
-        {-0.5f, -0.5f},
+        {0.0f, 0.5f, 0, 0, 0, 255},
+        {0.5f, -0.5f, 0, 255, 0, 255},
+        {-0.5f, -0.5f, 255, 0, 255, 255},
     };
     wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
     D3D11_BUFFER_DESC bd = {};
@@ -155,15 +165,17 @@ void Graphics::DrawTestTriangle()
     m_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 
     wrl::ComPtr<ID3D11InputLayout> pInputLayout;
-    D3D11_INPUT_ELEMENT_DESC layout[] = {
-        "Position",
-        0,
-        DXGI_FORMAT_R32G32_FLOAT,
-        0,
-        0,
-        D3D11_INPUT_PER_VERTEX_DATA,
-        0,
-    };
+    D3D11_INPUT_ELEMENT_DESC layout[]
+        = {{"Position", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {
+                "Color",
+                0,
+                DXGI_FORMAT_R8G8B8A8_UNORM,
+                0,
+                8u,
+                D3D11_INPUT_PER_VERTEX_DATA,
+                0,
+            }};
     GFX_RETURN_FAILED(m_pDevice->CreateInputLayout(layout,
         (UINT)std::size(layout),
         pBlob->GetBufferPointer(),
