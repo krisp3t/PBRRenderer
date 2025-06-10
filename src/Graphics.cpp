@@ -128,6 +128,9 @@ void Graphics::DrawTestTriangle()
         {0.0f, 0.5f, 0, 0, 0, 255},
         {0.5f, -0.5f, 0, 255, 0, 255},
         {-0.5f, -0.5f, 255, 0, 255, 255},
+        {-0.3f, 0.3f, 0, 255, 0, 0},
+        {0.3f, 0.3f, 0, 0, 255, 0},
+        {0.0f, -0.8f, 255, 0, 0, 0},
     };
     wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
     D3D11_BUFFER_DESC bd = {};
@@ -164,6 +167,33 @@ void Graphics::DrawTestTriangle()
     m_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
     m_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 
+    const unsigned short indices[] = {
+        0,
+        1,
+        2,
+        0,
+        2,
+        3,
+        0,
+        4,
+        1,
+        2,
+        1,
+        5,
+    };
+    wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
+    D3D11_BUFFER_DESC indexBufferDesc = {};
+    indexBufferDesc.ByteWidth = sizeof(indices);
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufferDesc.CPUAccessFlags = 0u;
+    indexBufferDesc.MiscFlags = 0;
+    indexBufferDesc.StructureByteStride = sizeof(unsigned short);
+    D3D11_SUBRESOURCE_DATA indexData = {};
+    indexData.pSysMem = indices;
+    GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&indexBufferDesc, &indexData, &pIndexBuffer));
+    m_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
     wrl::ComPtr<ID3D11InputLayout> pInputLayout;
     D3D11_INPUT_ELEMENT_DESC layout[]
         = {{"Position", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -195,7 +225,7 @@ void Graphics::DrawTestTriangle()
     vp.TopLeftY = 0;
     m_pContext->RSSetViewports(1, &vp);
 
-    m_pContext->Draw(3, 0);
+    m_pContext->DrawIndexed(static_cast<UINT>(std::size(indices)), 0u, 0u);
 }
 
 } // namespace PBRRenderer
