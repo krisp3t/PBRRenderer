@@ -1,4 +1,6 @@
 #include "Graphics.h"
+
+#include <cmath>
 #include <corecrt_wstdio.h>
 #include <dxerr/dxerr.h>
 #include <iterator>
@@ -106,7 +108,7 @@ void Graphics::Present()
     m_pSwapChain->Present(1, 0);
 }
 
-void Graphics::DrawTestTriangle()
+void Graphics::DrawTestTriangle(float angle)
 {
     namespace wrl = Microsoft::WRL;
     struct Vertex
@@ -193,6 +195,42 @@ void Graphics::DrawTestTriangle()
     indexData.pSysMem = indices;
     GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&indexBufferDesc, &indexData, &pIndexBuffer));
     m_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+    struct ConstantBuffer
+    {
+        struct
+        {
+            float element[4][4];
+        } transform;
+    };
+    const ConstantBuffer cb = {{std::cos(angle),
+        std::sin(angle),
+        0.0f,
+        0.0f,
+        -std::sin(angle),
+        std::cos(angle),
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f}};
+    wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
+    D3D11_BUFFER_DESC cbDesc = {};
+    cbDesc.ByteWidth = sizeof(cb);
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbDesc.MiscFlags = 0;
+    cbDesc.StructureByteStride = 0;
+    D3D11_SUBRESOURCE_DATA cbData = {};
+    cbData.pSysMem = &cb;
+    GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&cbDesc, &cbData, &pConstantBuffer));
+    m_pContext->VSSetConstantBuffers(0, 1, pConstantBuffer.GetAddressOf());
 
     wrl::ComPtr<ID3D11InputLayout> pInputLayout;
     D3D11_INPUT_ELEMENT_DESC layout[]
