@@ -203,8 +203,8 @@ void Graphics::DrawTestTriangle(float angle)
             float element[4][4];
         } transform;
     };
-    const ConstantBuffer cb = {{std::cos(angle),
-        std::sin(angle),
+    const ConstantBuffer cb = {{(3.0f / 4.0f) * std::cos(angle),
+        (3.0f / 4.0f) * std::sin(angle),
         0.0f,
         0.0f,
         -std::sin(angle),
