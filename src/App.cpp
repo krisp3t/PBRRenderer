@@ -5,12 +5,23 @@ namespace PBRRenderer
 {
 
 App::App(const std::string &commandLine)
-    : m_CommandLine(commandLine), m_Wnd(GetModuleHandle(nullptr), L"PBRRenderer", 800, 600)
+    : m_CommandLine(commandLine), m_Wnd(GetModuleHandle(nullptr), L"PBRRenderer", 800, 600),
+      m_LastFrameTime(std::chrono::steady_clock::now()),
+      m_SinceAppStart(std::chrono::steady_clock::now())
+
 {
 }
 
 App::~App()
 {
+}
+
+float App::CalculateDeltaTime()
+{
+    const auto currentTime = std::chrono::steady_clock::now();
+    const float deltaTime = std::chrono::duration<float>(currentTime - m_LastFrameTime).count();
+    m_LastFrameTime = currentTime;
+    return deltaTime;
 }
 
 int App::Run()
@@ -29,15 +40,17 @@ int App::Run()
             DispatchMessage(&msg);
         }
 
-        HandleInput(0.0f);
-        DoFrame(0.0f);
+        const float dt = CalculateDeltaTime();
+        HandleInput(dt);
+        DoFrame(dt);
     }
 }
 
 void App::DoFrame(float dt)
 {
     m_Wnd.Gfx().ClearBuffer(0.5f, 0.5f, 1.0f);
-    m_Wnd.Gfx().DrawTestTriangle(22.5f * dt);
+    m_Wnd.Gfx().DrawTestTriangle(
+        std::chrono::duration<float>(std::chrono::steady_clock::now() - m_SinceAppStart).count());
     m_Wnd.Gfx().EndFrame();
 }
 
