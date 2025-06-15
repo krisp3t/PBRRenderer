@@ -87,6 +87,34 @@ Graphics::Graphics(HWND hWnd)
     wrl::ComPtr<ID3D11Resource> pBackBuffer = nullptr;
     GFX_RETURN_FAILED(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Resource), (LPVOID *)&pBackBuffer));
     GFX_RETURN_FAILED(m_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pTarget));
+
+    D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+    dsDesc.DepthEnable = true;
+    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    wrl::ComPtr<ID3D11DepthStencilState> pDSState;
+    GFX_RETURN_FAILED(m_pDevice->CreateDepthStencilState(&dsDesc, &pDSState));
+    m_pContext->OMSetDepthStencilState(pDSState.Get(), 0u);
+
+    D3D11_TEXTURE2D_DESC depthDesc = {};
+    depthDesc.Width = 800;
+    depthDesc.Height = 600;
+    depthDesc.MipLevels = 1;
+    depthDesc.ArraySize = 1;
+    depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    depthDesc.SampleDesc.Count = 1;
+    depthDesc.SampleDesc.Quality = 0;
+    depthDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    wrl::ComPtr<ID3D11Texture2D> pDepthStencil;
+    GFX_RETURN_FAILED(m_pDevice->CreateTexture2D(&depthDesc, nullptr, &pDepthStencil));
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = depthDesc.Format;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    dsvDesc.Texture2D.MipSlice = 0;
+    GFX_RETURN_FAILED(m_pDevice->CreateDepthStencilView(pDepthStencil.Get(), &dsvDesc, &m_pDSV));
+    m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), m_pDSV.Get());
 }
 
 void Graphics::EndFrame()
@@ -103,6 +131,7 @@ void Graphics::ClearBuffer(float r, float g, float b, float a)
     const float clearColor[4] = {r, g, b, a};
 
     m_pContext->ClearRenderTargetView(m_pTarget.Get(), clearColor);
+    m_pContext->ClearDepthStencilView(m_pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void Graphics::Present()
@@ -278,7 +307,7 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
         &pInputLayout));
 
     m_pContext->IASetInputLayout(pInputLayout.Get());
-    m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), nullptr);
+
     m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     D3D11_VIEWPORT vp = {};
@@ -289,6 +318,7 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
     vp.TopLeftX = 0;
     vp.TopLeftY = 0;
     m_pContext->RSSetViewports(1, &vp);
+    m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), m_pDSV.Get());
 
     m_pContext->DrawIndexed(static_cast<UINT>(std::size(indices)), 0u, 0u);
 }
