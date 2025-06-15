@@ -110,7 +110,7 @@ void Graphics::Present()
     m_pSwapChain->Present(1, 0);
 }
 
-void Graphics::DrawTestTriangle(float angle)
+void Graphics::DrawTestTriangle(float angle, float x, float y)
 {
     namespace wrl = Microsoft::WRL;
     struct Vertex
@@ -119,22 +119,18 @@ void Graphics::DrawTestTriangle(float angle)
         {
             float x;
             float y;
+            float z;
         } pos;
-        struct
-        {
-            uint8_t r;
-            uint8_t g;
-            uint8_t b;
-            uint8_t a;
-        } color;
     };
     const Vertex vertices[] = {
-        {0.0f, 0.5f, 0, 0, 0, 255},
-        {0.5f, -0.5f, 0, 255, 0, 255},
-        {-0.5f, -0.5f, 255, 0, 255, 255},
-        {-0.3f, 0.3f, 0, 255, 0, 0},
-        {0.3f, 0.3f, 0, 0, 255, 0},
-        {0.0f, -0.8f, 255, 0, 0, 0},
+        {-1.0f, -1.0f, -1.0f},
+        {1.0f, -1.0f, -1.0f},
+        {-1.0f, 1.0f, -1.0f},
+        {1.0f, 1.0f, -1.0f},
+        {-1.0f, -1.0f, 1.0f},
+        {1.0f, -1.0f, 1.0f},
+        {-1.0f, 1.0f, 1.0f},
+        {1.0f, 1.0f, 1.0f},
     };
     wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
     D3D11_BUFFER_DESC bd = {};
@@ -171,20 +167,42 @@ void Graphics::DrawTestTriangle(float angle)
     m_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
     m_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 
-    const unsigned short indices[] = {
-        0,
-        1,
+    const unsigned short indices[] = {0,
         2,
-        0,
+        1,
         2,
         3,
+        1,
+        1,
+        3,
+        5,
+        3,
+        7,
+        5,
+        2,
+        6,
+        3,
+        3,
+        6,
+        7,
+        4,
+        5,
+        7,
+        4,
+        7,
+        6,
         0,
         4,
-        1,
         2,
+        2,
+        4,
+        6,
+        0,
+        1,
+        4,
         1,
         5,
-    };
+        4};
     wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
     D3D11_BUFFER_DESC indexBufferDesc = {};
     indexBufferDesc.ByteWidth = sizeof(indices);
@@ -202,9 +220,28 @@ void Graphics::DrawTestTriangle(float angle)
     {
         dx::XMMATRIX transform;
     };
-    const ConstantBuffer cb = {dx::XMMatrixTranspose(
+    struct ConstantBuffer2
+    {
+        struct
+        {
+            float r;
+            float g;
+            float b;
+            float a;
+        } face_colors[6];
+    };
+    const ConstantBuffer cb
+        = {dx::XMMatrixTranspose(dx::XMMatrixRotationX(angle) * dx::XMMatrixTranslation(x, y, 4.0f)
+                                 * dx::XMMatrixPerspectiveLH(1.0f, 3.0f / 4.0f, 0.5f, 10.0f))};
 
-        dx::XMMatrixRotationZ(angle) * dx::XMMatrixScaling(3.0f / 4.0f, 1.0f, 1.0f))};
+    const ConstantBuffer2 cb2 = {{
+        {1.0f, 0.0f, 1.0f},
+        {1.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f},
+        {1.0f, 1.0f, 0.0f},
+        {0.0f, 1.0f, 1.0f},
+    }};
     wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.ByteWidth = sizeof(cb);
@@ -218,18 +255,22 @@ void Graphics::DrawTestTriangle(float angle)
     GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&cbDesc, &cbData, &pConstantBuffer));
     m_pContext->VSSetConstantBuffers(0, 1, pConstantBuffer.GetAddressOf());
 
+    wrl::ComPtr<ID3D11Buffer> pConstantBuffer2;
+    D3D11_BUFFER_DESC cbd2;
+    cbd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbd2.Usage = D3D11_USAGE_DEFAULT;
+    cbd2.CPUAccessFlags = 0u;
+    cbd2.MiscFlags = 0u;
+    cbd2.ByteWidth = sizeof(cb2);
+    cbd2.StructureByteStride = 0u;
+    D3D11_SUBRESOURCE_DATA csd2 = {};
+    csd2.pSysMem = &cb2;
+    GFX_RETURN_FAILED(m_pDevice->CreateBuffer(&cbd2, &csd2, &pConstantBuffer2));
+    m_pContext->PSSetConstantBuffers(0u, 1u, pConstantBuffer2.GetAddressOf());
+
     wrl::ComPtr<ID3D11InputLayout> pInputLayout;
     D3D11_INPUT_ELEMENT_DESC layout[]
-        = {{"Position", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-            {
-                "Color",
-                0,
-                DXGI_FORMAT_R8G8B8A8_UNORM,
-                0,
-                8u,
-                D3D11_INPUT_PER_VERTEX_DATA,
-                0,
-            }};
+        = {{"Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}};
     GFX_RETURN_FAILED(m_pDevice->CreateInputLayout(layout,
         (UINT)std::size(layout),
         pBlob->GetBufferPointer(),

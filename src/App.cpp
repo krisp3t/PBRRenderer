@@ -50,7 +50,9 @@ void App::DoFrame(float dt)
 {
     m_Wnd.Gfx().ClearBuffer(0.5f, 0.5f, 1.0f);
     m_Wnd.Gfx().DrawTestTriangle(
-        std::chrono::duration<float>(std::chrono::steady_clock::now() - m_SinceAppStart).count());
+        std::chrono::duration<float>(std::chrono::steady_clock::now() - m_SinceAppStart).count(),
+        0.0f,
+        0.0f);
     m_Wnd.Gfx().EndFrame();
 }
 

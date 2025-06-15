@@ -27,7 +27,7 @@ class Graphics
     void EndFrame();
     void ClearBuffer(float r, float g, float b, float a = 1.0);
     void Present();
-    void DrawTestTriangle(float angle);
+    void DrawTestTriangle(float angle, float x, float y);
 
   private:
     bool CheckAndLogError(HRESULT hr, const wchar_t *file, DWORD line);
