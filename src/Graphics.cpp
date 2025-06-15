@@ -202,10 +202,9 @@ void Graphics::DrawTestTriangle(float angle)
     {
         dx::XMMATRIX transform;
     };
-    const ConstantBuffer cb = {{
-        dx::XMMatrixMultiply(dx::XMMatrixRotationZ(angle),
-            dx::XMMatrixScaling(3.0f / 4.0f, 1.0f, 1.0f)),
-    }};
+    const ConstantBuffer cb = {dx::XMMatrixTranspose(
+
+        dx::XMMatrixRotationZ(angle) * dx::XMMatrixScaling(3.0f / 4.0f, 1.0f, 1.0f))};
     wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.ByteWidth = sizeof(cb);
