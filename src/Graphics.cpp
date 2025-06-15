@@ -1,5 +1,6 @@
 #include "Graphics.h"
 
+#include <DirectXMath.h>
 #include <cmath>
 #include <corecrt_wstdio.h>
 #include <dxerr/dxerr.h>
@@ -16,6 +17,7 @@
     } while (0)
 
 namespace wrl = Microsoft::WRL;
+namespace dx = DirectX;
 
 namespace PBRRenderer
 {
@@ -198,27 +200,12 @@ void Graphics::DrawTestTriangle(float angle)
 
     struct ConstantBuffer
     {
-        struct
-        {
-            float element[4][4];
-        } transform;
+        dx::XMMATRIX transform;
     };
-    const ConstantBuffer cb = {{(3.0f / 4.0f) * std::cos(angle),
-        (3.0f / 4.0f) * std::sin(angle),
-        0.0f,
-        0.0f,
-        -std::sin(angle),
-        std::cos(angle),
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f}};
+    const ConstantBuffer cb = {{
+        dx::XMMatrixMultiply(dx::XMMatrixRotationZ(angle),
+            dx::XMMatrixScaling(3.0f / 4.0f, 1.0f, 1.0f)),
+    }};
     wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.ByteWidth = sizeof(cb);
