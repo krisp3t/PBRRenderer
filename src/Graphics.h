@@ -38,6 +38,7 @@ class Graphics
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_pSwapChain = nullptr;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pTarget = nullptr;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pDSV = nullptr;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_pRasterState = nullptr;
 };
 
 } // namespace PBRRenderer

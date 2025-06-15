@@ -91,7 +91,7 @@ Graphics::Graphics(HWND hWnd)
     D3D11_DEPTH_STENCIL_DESC dsDesc = {};
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    dsDesc.DepthFunc = D3D11_COMPARISON_GREATER;
     wrl::ComPtr<ID3D11DepthStencilState> pDSState;
     GFX_RETURN_FAILED(m_pDevice->CreateDepthStencilState(&dsDesc, &pDSState));
     m_pContext->OMSetDepthStencilState(pDSState.Get(), 0u);
@@ -114,6 +114,22 @@ Graphics::Graphics(HWND hWnd)
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     dsvDesc.Texture2D.MipSlice = 0;
     GFX_RETURN_FAILED(m_pDevice->CreateDepthStencilView(pDepthStencil.Get(), &dsvDesc, &m_pDSV));
+
+    D3D11_RASTERIZER_DESC rastDesc = {};
+    rastDesc.FillMode = D3D11_FILL_SOLID;
+    rastDesc.CullMode = D3D11_CULL_BACK;
+    rastDesc.FrontCounterClockwise = false;
+    rastDesc.DepthBias = 0;
+    rastDesc.DepthBiasClamp = 0.0f;
+    rastDesc.SlopeScaledDepthBias = 0.0f; // Helps with z-fighting
+    rastDesc.DepthClipEnable = true;
+    rastDesc.ScissorEnable = false;
+    rastDesc.MultisampleEnable = false;
+    rastDesc.AntialiasedLineEnable = false;
+
+    GFX_RETURN_FAILED(m_pDevice->CreateRasterizerState(&rastDesc, &m_pRasterState));
+    m_pContext->RSSetState(m_pRasterState.Get());
+
     m_pContext->OMSetRenderTargets(1, m_pTarget.GetAddressOf(), m_pDSV.Get());
 }
 
@@ -131,7 +147,7 @@ void Graphics::ClearBuffer(float r, float g, float b, float a)
     const float clearColor[4] = {r, g, b, a};
 
     m_pContext->ClearRenderTargetView(m_pTarget.Get(), clearColor);
-    m_pContext->ClearDepthStencilView(m_pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+    m_pContext->ClearDepthStencilView(m_pDSV.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0);
 }
 
 void Graphics::Present()
@@ -259,9 +275,11 @@ void Graphics::DrawTestTriangle(float angle, float x, float y)
             float a;
         } face_colors[6];
     };
-    const ConstantBuffer cb
-        = {dx::XMMatrixTranspose(dx::XMMatrixRotationX(angle) * dx::XMMatrixTranslation(x, y, 4.0f)
-                                 * dx::XMMatrixPerspectiveLH(1.0f, 3.0f / 4.0f, 0.5f, 10.0f))};
+    dx::XMMATRIX world = dx::XMMatrixRotationX(angle) * dx::XMMatrixTranslation(x, y, 4.0f);
+    dx::XMMATRIX view = dx::XMMatrixIdentity(); // or camera
+    dx::XMMATRIX proj = dx::XMMatrixPerspectiveFovLH(1.0f, 4.0f / 3.0f, 10.0f, 0.5f);
+    dx::XMMATRIX worldViewProj = world * view * proj;
+    ConstantBuffer cb = {dx::XMMatrixTranspose(worldViewProj)};
 
     const ConstantBuffer2 cb2 = {{
         {1.0f, 0.0f, 1.0f},
